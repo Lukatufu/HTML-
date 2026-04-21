@@ -464,6 +464,15 @@ const answered = {};
 let score = 0;
 let submitted = false;
 
+function escapeHTML(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function getGroupForQ(id) {
   return groups.find(g => id >= g.range[0] && id <= g.range[1]);
 }
@@ -477,17 +486,17 @@ function buildUI() {
     const grp = getGroupForQ(q.id);
     if (!currentGroup || currentGroup.label !== grp.label) {
       currentGroup = grp;
-      html += `<div class="section-header"><span class="section-tag">${grp.label}</span><div class="section-line"></div></div>`;
+      html += `<div class="section-header"><span class="section-tag">${escapeHTML(grp.label)}</span><div class="section-line"></div></div>`;
     }
     html += `<div class="q-card" id="qcard-${q.id}">
       <div class="q-meta">
         <span class="q-num">#${q.id}</span>
         <span class="q-status" id="status-${q.id}"></span>
       </div>
-      <div class="q-text">${q.q}</div>
+      <div class="q-text">${escapeHTML(q.q)}</div>
       <div class="options" id="opts-${q.id}">
         ${q.opts.map((o, i) => `<button class="option-btn" id="opt-${q.id}-${i}" onclick="pick(${q.id},${i})">
-          <span class="opt-letter">${letters[i]}</span><span>${o}</span>
+          <span class="opt-letter">${escapeHTML(letters[i])}</span><span>${escapeHTML(o)}</span>
         </button>`).join('')}
       </div>
     </div>`;
