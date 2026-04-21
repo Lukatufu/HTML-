@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ვებ დიზაინი — შუალედური ტესტი</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d14;
+    --surface: #15151f;
+    --card: #1c1c2a;
+    --border: #2a2a3d;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --correct: #43e97b;
+    --wrong: #ff6584;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans Georgian', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 32px 24px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-size: clamp(22px, 4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+  .header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .score-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    white-space: nowrap;
+  }
+
+  /* Main */
+  .main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 32px 20px;
+  }
+
+  /* Section labels */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0 20px;
+  }
+  .section-header:first-child { margin-top: 0; }
+  .section-tag {
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    text-transform: uppercase;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Question card */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .q-card:hover { border-color: rgba(108,99,255,0.4); }
+  .q-card.answered-correct { border-color: var(--correct); background: rgba(67,233,123,0.04); }
+  .q-card.answered-wrong { border-color: var(--wrong); background: rgba(255,101,132,0.04); }
+
+  .q-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .q-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(108,99,255,0.12);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+  .q-status {
+    font-size: 16px;
+    display: none;
+  }
+
+  .q-text {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .option-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Noto Sans Georgian', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 12px 16px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(108,99,255,0.08);
+    transform: translateX(4px);
+  }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.selected { border-color: var(--accent); background: rgba(108,99,255,0.14); }
+  .option-btn.correct { border-color: var(--correct) !important; background: rgba(67,233,123,0.12) !important; color: var(--correct); }
+  .option-btn.wrong { border-color: var(--wrong) !important; background: rgba(255,101,132,0.1) !important; color: var(--wrong); }
+  .option-btn.reveal-correct { border-color: var(--correct) !important; background: rgba(67,233,123,0.06) !important; color: var(--correct); }
+
+  .opt-letter {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--bg);
+    border-radius: 4px;
+    padding: 1px 7px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .option-btn.correct .opt-letter,
+  .option-btn.reveal-correct .opt-letter { color: var(--correct); background: rgba(67,233,123,0.1); }
+  .option-btn.wrong .opt-letter { color: var(--wrong); background: rgba(255,101,132,0.1); }
+
+  /* Result bar */
+  .result-bar {
+    background: var(--card);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    text-align: center;
+    margin-top: 48px;
+    display: none;
+  }
+  .result-bar.show { display: block; }
+  .result-big {
+    font-size: 56px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .result-sub { color: var(--muted); font-size: 15px; margin-top: 8px; }
+  .result-grade { font-size: 20px; font-weight: 600; margin-top: 16px; }
+  .retry-btn {
+    margin-top: 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .retry-btn:hover { opacity: 0.85; }
+
+  /* Submit button */
+  .submit-wrap {
+    text-align: center;
+    margin-top: 40px;
+  }
+  .submit-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 16px 48px;
+    font-family: 'Noto Sans Georgian', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 24px rgba(108,99,255,0.35);
+  }
+  .submit-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* Floating answered counter */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    right: 24px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 99px;
+    padding: 10px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.5);
+    pointer-events: none;
+    z-index: 200;
+    transition: background 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">აკაკი წერეთლის სახელმწიფო უნივერსიტეტი</div>
+  <h1>ვებ დიზაინი (HTML &amp; CSS)<br>შუალედური ტესტი</h1>
+  <p>პედაგოგი: აკაკი ძნელაძე &nbsp;|&nbsp; კომპიუტერული მეცნიერებები, II წელი</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel">0 / 104</div>
+  <div class="score-pill" id="scorePill">ქულა: 0</div>
+</div>
+
+<div class="main" id="mainArea"></div>
+
+<div class="fab" id="fab">0 / 104 ✓</div>
+
+<script>
+const questions = [
+  // Group 1
+  { id:1, q:"html-დოკუმენტის შესაბამისი ვებ-გვერდის დათვალიერება ხდება:", opts:["ელექტრული ცხრილების სოფთუერით","web ბრაუზერით","მონაცემთა ბაზების მართვის სოფთუერით","საგამომცემლო სოფთუერით"], ans:1 },
+  { id:2, q:"ინტერნეტში გამოქვეყნებულ ვებ-დოკუმენტს ჰქვია:", opts:["web გვერდი","web ბრაუზერი","web საიტი","web სერვერი"], ans:0 },
+  { id:3, q:"რომელ ენაზე ხდება web გვერდის შექმნა?", opts:["basic","paskal","c++","html"], ans:3 },
+  { id:4, q:"როგორი სახელის გაფართოება უნდა ჰქონდეს ფაილებს, რომლებშიც ინახება ვებ-გვერდების კოდები?", opts:["html/htm","http","www","txt"], ans:0 },
+  { id:5, q:"რას აღნიშნავს HTML?", opts:["Home Tool Markup Language","Hyper Text Markup Language","Hyper Link and Text Markup Language","HyperText Main Link Language"], ans:1 },
+  { id:6, q:"ყველა ვებ ბრაუზერისათვის მიღებულია, რომ ვებ საიტის საწყისი გვერდის სახელი იყოს:", opts:["first","html","txt","index"], ans:3 },
+  { id:7, q:"რომელ სიმბოლოებში იწერება თეგები?", opts:["> <","'' ''","< >","/ /"], ans:2 },
+  { id:8, q:"აუცილებელი თეგი, რომლითაც უნდა დაიწყოს ვებ-გვერდის კოდი:", opts:["<head>","<html>","<title>","<body>"], ans:1 },
+  { id:9, q:"ვებ-გვერდის html კოდში სათაურის ბლოკი იწერება შემდეგ თეგებში:", opts:["<head> </head>","<body> </body>","<strike> </strike>","<br> </br>"], ans:0 },
+  { id:10, q:"<head> და </head> თეგებს შორის მოთავსებულია:", opts:["დოკუმენტის უშუალო შინაარსი","ვებ გვერდის ფონი","მთლიანი ვებ გვერდი","დოკუმენტის სათაურის ნაწილი"], ans:3 },
+  { id:11, q:"ვებ გვერდის შინაარსი იწერება შემდეგ თეგებში:", opts:["<body> </body>","<head> </head>","<title> </title>","<br> </br>"], ans:0 },
+  { id:12, q:"<body> და </body> თეგებს შორის მოთავსებულია:", opts:["დოკუმენტის უშუალო შინაარსი","ვებ გვერდის ფონი","მთლიანი ვებ გვერდი","დოკუმენტის სათაურის ნაწილი"], ans:0 },
+  { id:13, q:"<title> და </title> თეგებს შორის მოთავსებული ინფორმაცია აისახება:", opts:["ბრაუზერის ფანჯრის შინაარსის არეში","ბრაუზერის ფანჯრის მენიუს ზოლში","ბრაუზერის ფანჯრის სათაურის ზოლში","დავალებების ზოლში"], ans:2 },
+  { id:14, q:"რა არის თეგის ატრიბუტი?", opts:["ტეგის ატრიბუტი ტეგის დამახასიათებელი რაიმე თვისებაა, ისინი გამხსნელ და დამხურავ თეგებს შორის არის მოთავსებული","ტეგის ატრიბუტი ტეგის დამახასიათებელი რაიმე თვისებაა, ისინი <meta></meta> თეგებს შორის არის მოთავსებული","ტეგის ატრიბუტი ტეგის დამახასიათებელი რაიმე თვისებაა, ისინი <head></head> თეგებს შორის არის მოთავსებული","ტეგის ატრიბუტი ტეგის დამახასიათებელი რაიმე თვისებაა, ისინი ძირითადად ტეგის გამხსნელ ველშია მოთავსებული"], ans:3 },
+  { id:15, q:"რამდენიმე ერთმანეთთან დაკავშირებულ ვებ-გვერდს ეწოდება:", opts:["web სერვერი","web დოკუმენტი","web გვერდი","web საიტი"], ans:3 },
+  { id:16, q:"რომელი არის გამხსნელი და დამხურავი თეგების განმასხვავებელი სიმბოლო:", opts:["<",">","/"," \\"], ans:2 },
+  { id:17, q:"HTML5 სტანდარტის შესაბამისად, ვებგვერდის აგება იწყება:", opts:["<html> თეგით","<body> თეგით","<!DOCTYPE html> ინსტრუქციით","<head> თეგით"], ans:2 },
+  { id:18, q:"რომელი თეგების შიგნით იწერება meta თეგი?", opts:["<body> </body>","<head> </head>","<title> </title>","<br> </br>"], ans:1 },
+  { id:19, q:"რომელი არ არის meta თეგების დანიშნულება?", opts:["შეიცავს საკვანძო სიტყვებს","შეიცავს ავტორზე მიმართვას","შეიცავს ვებგვერდის მოკლე აღწერას","განსაზღვრავს ვებ გვერდის ფონის ფერს"], ans:3 },
+  { id:20, q:'რა მოქმედებას შეასრულებს meta თეგი: <meta http-equiv="Refresh" content="10; url=http://www.atsu.edu.ge">?', opts:["ხელახლა ასახავს მიმდინარე ვებ გვერდს","ბრაუზერის მიერ მიმდინარე გვერდის ჩატვირთვიდან 10 წამის შემდეგ მოხდება გადასვლა უნივერსიტეტის ვებ გვერდზე","ბრაუზერის ფანჯარაში თავდაპირველად აისახება უნივერსიტეტის ვებ გვერდი, ხოლო 10 წამის შემდეგ მიმდინარე გვერდი","ბრაუზერი ასახავს მიმდინარე გვერდს და შემდეგ ახალ ფანჯარაში ასახავს უნივერსიტეტის ვებ გვერდს"], ans:1 },
+  { id:21, q:'<link rel="shortcut icon" href="earth.ico"> — რა მოქმედებას შეასრულებს ზემოთ მოცემული link თეგი?', opts:['ბრაუზერში გახსნილი ფანჯრის შინაარსის არის პირველ სტრიქონში "earth.ico" ფაილიდან ჩასვამს პატარა ნახატს','ბრაუზერში გახსნილი ფანჯრის სათაურში, ვებგვერდის დასახელების წინ, "earth.ico" ფაილიდან ჩასვამს პატარა ნახატს','ბრაუზერში გახსნილი ფანჯრის შინაარსის არეში ჩასვამს "earth.ico" ბმულს','ბრაუზერში გახსნილი ფანჯრის შინაარსის არის პირველ სტრიქონში "earth.ico" ტექსტს'], ans:1 },
+  { id:22, q:"რომელი არის HTML კოდში კომენტარის ჩასმის სწორი ფორმა?", opts:["<!-- კომენტარი -->","</-- კომენტარი -->","/-კომენტარი--/","<? კომენტარი >"], ans:0 },
+
+  // Group 2
+  { id:23, q:"HTML-ში ფერები განისაზღვრება:", opts:["რვაობით კოდში","თექვსმეტობით კოდში","ათობით კოდში","ორობით კოდში"], ans:1 },
+  { id:24, q:"ფერების გამა ეყრდნობა სამ ძირითად ფერს:", opts:["მწვანეს, წითელსა და ლურჯს (GRB)","წითელს, მწვანესა და ლურჯს (RGB)","წითელს, მწვანესა და ყვითელს (RGY)","წითელს, ლურჯსა და მწვანეს (RBG)"], ans:1 },
+  { id:25, q:"რომელ ფერს აღნიშნავს #ff0000 კოდი?", opts:["ლურჯს","წითელს","მწვანეს","ყვითელს"], ans:1 },
+  { id:26, q:"რომელ ფერს აღნიშნავს #0000ff კოდი?", opts:["ლურჯს","წითელს","მწვანეს","ყვითელს"], ans:0 },
+  { id:27, q:"რომელ ფერს აღნიშნავს #00ff00 კოდი?", opts:["ლურჯს","წითელს","მწვანეს","ყვითელს"], ans:2 },
+  { id:28, q:"ადგილი ინტერნეტში სადაც განთავსებულია ვებ საიტი არის:", opts:["ვებ გვერდი","ვებ ბრაუზერი","ვებ სერვერი","საძიებო სისტემა"], ans:2 },
+  { id:29, q:"ქვემოთ ჩამოთვლილთაგან, რომელი თეგების შიგნით მოთავსებული ტექსტი აისახება ბრაუზერის ფანჯრის სათაურის ზოლში?", opts:["<html></html>","<p></p>","<title></title>","<div></div>","<body></body>"], ans:2 },
+  { id:30, q:"რას განსაზღვრავს <body> თეგის ატრიბუტები?", opts:["<body> თეგის ატრიბუტები განსაზღვრავს მთლიანი დოკუმენტის შესახედაობას","<body> თეგის ატრიბუტები განსაზღვრავს საკვანძო სიტყვებს","<body> თეგის ატრიბუტები განსაზღვრავს ავტორზე მიმართვას","<body> თეგის ატრიბუტები განსაზღვრავს ვებგვერდის მოკლე აღწერას"], ans:0 },
+  { id:31, q:"<body> თეგის რომელი ატრიბუტი განსაზღვრავს ვებ-დოკუმენტის ტექსტის ფერს?", opts:["color","text","fontcolor","textcolor"], ans:1 },
+  { id:32, q:"რა ფუნქციას ასრულებს თეგი <html></html>?", opts:["ეს არის აუცილებელი თეგი, რომელშიც ისმება მთლიანად ვებ-გვერდის კოდი","ეს არის აუცილებელი თეგი, რომელიც განსაზღვრავს ვებ-გვერდის სათაურს","ეს არის აუცილებელი თეგი, რომელიც განსაზღვრავს დოკუმენტის ტანს","ეს არ არის აუცილებელი თეგი"], ans:0 },
+  { id:33, q:"ვებ გვერდზე სურათის ფონად დადება ხდება <body> თეგის შემდეგი ატრიბუტით:", opts:["bodycolor","back","background","backpicture"], ans:2 },
+  { id:34, q:"<body> თეგის რომელი ატრიბუტით შეგვიძლია ბმულის ფერის განსაზღვრა?", opts:["linkcolor","link","colorlink","clink"], ans:1 },
+  { id:35, q:"<body> თეგის რომელი ატრიბუტი განსაზღვრავს მონახულებული ბმულის ფერს?", opts:["linkcolor","alink","vlink","link"], ans:2 },
+  { id:36, q:"რა ფუნქციას ასრულებს background ატრიბუტი <body> თეგში?", opts:["ნახატს აქცევს დოკუმენტის ფონად","განსაზღვრავს ფონის ფერს","განსაზღვრავს დოკუმენტში ტექსტის ფერს","განსაზღვრავს ნახატის ფერს"], ans:0 },
+  { id:37, q:"რა ფუნქციას ასრულებს topmargin ატრიბუტი <body> თეგში?", opts:["განსაზღვრავს გვერდის ზედა მინდვრის საზღვარს პიქსელებში","განსაზღვრავს გვერდის ტექსტის სტრიქონებს შორის დაშორებას","განსაზღვრავს გვერდის ტექსტის პირველი სტრიქონის ზომას პიქსელებში","განსაზღვრავს გვერდის ტექსტის პირველი სტრიქონის ზომას სანტიმეტრებში"], ans:0 },
+  { id:38, q:"რა ფუნქციას ასრულებს text ატრიბუტი <body> თეგში?", opts:["განსაზღვრავს მთლიანი დოკუმენტის ტექსტის ფერს","განსაზღვრავს მხოლოდ <p></p> თეგებში მოთავსებულ ტექსტის ფერს","განსაზღვრავს მხოლოდ <div></div> თეგებში მოთავსებულ ტექსტის ფერს","განსაზღვრავს მხოლოდ სათაურის თეგებში მოთავსებულ ტექსტის ფერს"], ans:0 },
+  { id:39, q:"რა ფერის იქნება გვერდის ტექსტი თუ <body> თეგში არ არის მითითებული text ატრიბუტი?", opts:["ლურჯი","წითელი","მწვანე","შავი"], ans:3 },
+  { id:40, q:"რა ფუნქციას ასრულებს leftmargin ატრიბუტი <body> თეგში?", opts:["განსაზღვრავს გვერდის ტექსტის სტრიქონებს შორის დაშორებას","განსაზღვრავს გვერდის ტექსტის პირველი სტრიქონის ზომას პიქსელებში","განსაზღვრავს გვერდის ტექსტის პირველი სტრიქონის ზომას სანტიმეტრებში","განსაზღვრავს გვერდის მარცხენა მინდვრის საზღვარს პიქსელებში"], ans:3 },
+
+  // Group 3
+  { id:41, q:"სათაურების ზომის რამდენი დონე არსებობს html ენაში?", opts:["3 დონე","4 დონე","5 დონე","6 დონე","7 დონე"], ans:3 },
+  { id:42, q:"რომელი თეგით განისაზღვრება სათაურის პირველი, ყველაზე მნიშვნელოვანი მაღალი დონე?", opts:["<h1> </h1>","<h5> </h5>","<h6> </h6>","<h7> </h7>"], ans:0 },
+  { id:43, q:"რა დანიშნულება აქვს სათაურის თეგებს?", opts:["ძებნის სამსახურები სათაურებს იყენებენ შესაბამისი ვებ გვერდის სტრუქტურისა და შინაარსის ინდექსირებისათვის","გამოიყენება მხოლოდ ტექსტის ზომის შეცვლისათვის","გამოიყენება მხოლოდ ვებგვერდის სტრუქტურის საჩვენებლად","გამოიყენება მხოლოდ მომხმარებელისათვის ვებგვერდის დათვალიერების გასამარტივებლად"], ans:0 },
+  { id:44, q:"ახალი აბზაცის დაწყება ხდება შემდეგი თეგით:", opts:["<br>","<dl>","<p>","<dt>"], ans:2 },
+  { id:45, q:"ტექსტის იმავე აბზაცის ახალ სტრიქონზე გადატანა ხდება შემდეგი თეგით:", opts:["<p>","<i>","<br>","<b>"], ans:2 },
+  { id:46, q:"<br> თეგით ხდება:", opts:["ტექსტის გამსხვილება","ტექსტის ახალ სტრიქონზე გადატანა","ტექსტის დახრა","ტექსტის ხაზგასმა"], ans:1 },
+  { id:47, q:"ქვემოთ ჩამოთვლილი თეგებიდან, რომელი არ საჭიროებს დახურვას?", opts:["<html>","<br>","<h1>","<a>","<p>"], ans:1 },
+  { id:48, q:"ერთნაირი ატრიბუტის მქონე აბზაცების გაერთიანება ხდება შემდეგი თეგით:", opts:["<div> </div>","<title> </title>","<head> </head>","<strike> </strike>"], ans:0 },
+  { id:49, q:"როგორი წესები უნდა იქნას დაცული <p></p> და <div></div> თეგების გამოყენებისას?", opts:["თეგი <p></p> შეიძლება შეიცავდეს სხვა <p></p> თეგებს, მაგრამ არა <div></div>-ს; <div></div> შეიძლება შეიცავდეს <p></p> თეგებს","თეგი <p></p> შეიძლება შეიცავდეს <div></div>-ს, მაგრამ არა სხვა <p></p> თეგს","თეგი <p></p> შეიძლება შეიცავდეს <p></p> და <div></div> თეგებს","თეგი <div></div> არ შეიძლება შეიცავდეს <p></p> თეგებს"], ans:0 },
+  { id:50, q:"<pre></pre> თეგით შეგვიძლია:", opts:["გავაერთიანოთ აბზაცები","ბრაუზერის ფანჯარაში ჩავსვათ სურათი","შევცვალოთ ფონის ფერი","ბრაუზერის ფანჯარაში ავსახოთ წინასწარ დაფორმატებული ტექსტი"], ans:3 },
+  { id:51, q:"ტექსტის სიმბოლოების გამსხვილება ხდება შემდეგი თეგებით:", opts:["<b> </b>","<u> </u>","<i> </i>","<p> </p>"], ans:0 },
+  { id:52, q:"ტექსტის სიმბოლოების დახრა ხდება შემდეგი თეგით:", opts:["<i> </i>","<u> </u>","<br> </br>","<p> </p>"], ans:0 },
+  { id:53, q:"ტექსტზე ხაზგასმა ხდება შემდეგი თეგით:", opts:["<u> </u>","<a> </a>","<b> </b>","<p> </p>"], ans:0 },
+  { id:54, q:"რა ფუნქციას ასრულებს თეგი <sup></sup>?", opts:["განსაზღვრავს ზედა ინდექსს","განსაზღვრავს ქვედა ინდექსს","განსაზღვრავს მაქსიმალური ზომის ტექსტს","განსაზღვრავს მინიმალური ზომის ტექსტს"], ans:0 },
+  { id:55, q:"ტექსტის გადახაზვა შესაძლებელია შემდეგი თეგით:", opts:["<s> </s>","<caption> </caption>","<table> </table>","<sup> </sup>"], ans:0 },
+  { id:56, q:"მთელი ტექსტის წყვეტის გარეშე ერთ სტრიქონში განთავსება ხდება შემდეგი თეგით:", opts:["<strike>","<caption>","<nobr>","<table>"], ans:2 },
+  { id:57, q:"<nobr></nobr> ტეგში ჩაწერილი ტექსტი ახალ სტრიქონზე გადააქვს შემდეგ თეგს:", opts:["<table>","<wbr>","<strike>","<caption>"], ans:1 },
+  { id:58, q:"რომელი თეგი განსაზღვრავს ტექსტს როგორც დიდი ზომის ციტატას?", opts:["<caption>","<q>","<wbr>","<blockquote>"], ans:3 },
+  { id:59, q:'რომელი თეგი აფორმებს ტექსტს მოკლე ციტატის სახით და გამოაქვს ბრჭყალებით (")?', opts:["<caption>","<q>","<wbr>","<blockquote>"], ans:1 },
+  { id:60, q:"ხელოვნების ნამუშევრების სათაურს განსაზღვრავს და ტექსტს დახრილი შრიფტით გამოიტანს თეგი:", opts:["<caption>","<q>","<cite>","<blockquote>"], ans:2 },
+  { id:61, q:'<abbr title="აკაკი წერეთლის სახელმწიფო უნივერსიტეტი"> აწსუ </abbr> კოდის შედეგად:', opts:['ეკრანზე აისახება „აკაკი წერეთლის სახელმწიფო უნივერსიტეტი" მსხვილი ასოებით','ეკრანზე აისახება „აწსუ" აკრონიმი, მაუსის მოთავსების შემდეგ ეკრანზე აისახება მისი გაშიფვრა','ეკრანზე აისახება „აწსუ", რომელზეც დაწკაპუნების შედეგად ეკრანზე აისახება უნივერსიტეტის ვებ გვერდი','ეკრანზე „აწსუ" მის გვერდით ჩნდება სრული სახელი ფრჩხილებში'], ans:1 },
+
+  // Group 4
+  { id:62, q:"ბრაუზერის ფანჯარაში ჰორიზონტალურ ხაზს ხატავს შემდეგი თეგი:", opts:["<hr>","<br>","<sup>","<sub>"], ans:0 },
+  { id:63, q:"<hr> თეგის რომელი ატრიბუტით განისაზღვრება ჩასმული ჰორიზონტალური ხაზის სიგრძე?", opts:["size","width","length","noshade"], ans:1 },
+  { id:64, q:'<hr width="20%" color="#00ff00"> თეგი ბრაუზერის ფანჯარაში ასახავს ხაზს:', opts:["რომლის სიგრძე იქნება 20 პიქსელი და ფერი მწვანე","რომლის სიგრძე იქნება ბრაუზერის ფანჯრის სიგანის 20 პროცენტი და ფერი მწვანე","რომლის სიგრძე იქნება ბრაუზერის ფანჯრის სიგანის 20 პროცენტი და ფერი ლურჯი","რომლის სისქე იქნება 20 პიქსელი და ფერი მწვანე"], ans:1 },
+  { id:65, q:"ქვემოთ ჩამოთვლილთაგან, რომელი თეგი განსაზღვრავს მარკირებულ სიას?", opts:["<ul>","<dl>","<ol>","<br>"], ans:0 },
+  { id:66, q:"ქვემოთ ჩამოთვლილთაგან, რომელი თეგი განსაზღვრავს დანომრილ სიას?", opts:["<ul>","<dl>","<ol>","<br>"], ans:2 },
+  { id:67, q:"ჩამოთვლილთაგან, რომელი ატრიბუტი არის მახასიათებელი სიებისათვის?", opts:["face","type","noshade","size"], ans:1 },
+  { id:68, q:'ჩამოთვლილთაგან, რომელი თეგი განსაზღვრავს დანომრილ სიას, სადაც სტრიქონები დანომრილია არაბული რიცხვებით და დანომვრა იწყება 3-დან?', opts:['<ol type="A" start="3">','<ol type="I" start="3">','<ol type="3" start="1">','<ol type="1" start="3">'], ans:3 },
+  { id:69, q:"ქვემოთ ჩამოთვლილთაგან, რომელი თეგი განსაზღვრავს განსაზღვრებათა სიას?", opts:["<ul>","<dl>","<ol>","<br>"], ans:1 },
+
+  // Group 5
+  { id:70, q:"web გვერდზე გრაფიკული ელემენტის ჩასმა ხდება შემდეგი თეგით:", opts:["<img>","<sound>","<bgcolor>","<area>"], ans:0 },
+  { id:71, q:"რა ფუნქციას ასრულებს ატრიბუტი src თეგში <img>?", opts:["ის მიუთითებს ნახატის შესაბამის ფაილს","ის მიუთითებს ნახატის სიმაღლეს","ის მიუთითებს ნახატის სიგანეს","ის მიუთითებს ნახატის დაცილებას ტექსტიდან"], ans:0 },
+  { id:72, q:'<img src="suratebi/dog.jpg"> თეგის შედეგად:', opts:["Web დოკუმენტში ჩაისმება გამოსახულება, რომელიც მდებარეობს იმავე ფოლდერში, სადაც Web დოკუმენტია","Web დოკუმენტში ჩაისმება გამოსახულება, რომელიც მდებარეობს იმ ფოლდერის ქვეფოლდერში, სადაც Web დოკუმენტია","Web დოკუმენტში ჩაისმება გამოსახულება, რომელიც მდებარეობს ერთი დონით ზედა ფოლდერში","Web დოკუმენტში სურათი არ ჩაისმება, ვინაიდან src ატრიბუტის მნიშვნელობა არასწორად არის მითითებული"], ans:1 },
+  { id:73, q:"როდის შეიძლება ნახატის შესაბამისი ფაილის გზა არ მივუთითოთ მთლიანად <img> თეგის src ატრიბუტში?", opts:["როცა ნახატის ფაილი არის იმავე ფოლდერში სადაც ვებ-დოკუმენტია","როცა ნახატის ფაილი არის იმავე კომპიუტერში სადაც ვებ-დოკუმენტია","როცა ნახატის ფაილი არის ქვეფოლდერში","როცა ნახატის ფაილი განთავსებულია ინტერნეტში","არასდროს არ შეიძლება"], ans:0 },
+  { id:74, q:"ტექსტის გამოჩენა სურათთან მაუსის მიმთითებლის მიტანისას ხდება <img> თეგის შემდეგი ატრიბუტით:", opts:["alt","title","align","url"], ans:1 },
+  { id:75, q:"რომელი ატრიბუტით მიეთითება გამოსახულების მოკლე აღწერა, რომელიც აისახება ვებ გვერდზე თუ სურათი არ აისახა?", opts:["alt","title","align","url"], ans:0 },
+  { id:76, q:"გრაფიკული გამოსახულების რომელი ფორმატის გამოყენება არ არის სასურველი web-გვერდის შექმნისას?", opts:["bmp","jpeg","gif","png"], ans:0 },
+  { id:77, q:"რა დანიშნულება აქვს <img> თეგის height ატრიბუტს?", opts:["height ატრიბუტი განსაზღვრავს სურათის სიმაღლეს პროცენტებში","თუ height ატრიბუტი მითითებულია, სურათი თავისი ორიგინალური ზომებით აისახება","height ატრიბუტი განსაზღვრავს სურათის სიმაღლეს პიქსელებში","თუ height ატრიბუტი არ არის მითითებული, სურათი არ აისახება"], ans:2 },
+  { id:78, q:"რა ფუნქციას ასრულებს border ატრიბუტი <img> თეგში?", opts:["განსაზღვრავს გამოსახულების ჩარჩოს სისქეს პროცენტებში","გამოსახულებასა და ტექსტს შორის ზემოთ და ქვემოთ ცარიელი არის ზომას მიუთითებს პიქსელებში","გამოსახულებასა და ტექსტს შორის მარცხნივ და მარჯვნივ ცარიელი არის ზომას მიუთითებს პიქსელებში","განსაზღვრავს გამოსახულების ჩარჩოს სისქეს პიქსელებში"], ans:3 },
+  { id:79, q:"რა ფუნქციას ასრულებს vspace ატრიბუტი <img> თეგში?", opts:["განსაზღვრავს გამოსახულების ჩარჩოს სისქეს პროცენტებში","გამოსახულებასა და ტექსტს შორის ზემოთ და ქვემოთ ცარიელი არის ზომას მიუთითებს პიქსელებში","გამოსახულებასა და ტექსტს შორის მარცხნივ და მარჯვნივ ცარიელი არის ზომას მიუთითებს პიქსელებში","განსაზღვრავს გამოსახულების ჩარჩოს სისქეს პიქსელებში"], ans:1 },
+  { id:80, q:"რა ფუნქციას ასრულებს hspace ატრიბუტი <img> თეგში?", opts:["განსაზღვრავს გამოსახულების ჩარჩოს სისქეს პროცენტებში","გამოსახულებასა და ტექსტს შორის ზემოთ და ქვემოთ ცარიელი არის ზომას მიუთითებს პიქსელებში","გამოსახულებასა და ტექსტს შორის მარცხნივ და მარჯვნივ ცარიელი არის ზომას მიუთითებს პიქსელებში","განსაზღვრავს გამოსახულების ჩარჩოს სისქეს პიქსელებში"], ans:2 },
+
+  // Group 6
+  { id:81, q:"ქვემოთ ჩამოთვლილთაგან, რომელი თეგი განსაზღვრავს ბმულს?", opts:["<shref></shref>","<a></a>","<p></p>","<b></b>","<l></l>"], ans:1 },
+  { id:82, q:"რა დანიშნულება აქვს <a> თეგის target ატრიბუტს?", opts:["განსაზღვრავს ჩასატვირთი ვებ გვერდი აისახაოს იმავე ფანჯარაში თუ ახალ ფანჯარაში","განსაზღვრავს ჩასატვირთი ვებ გვერდის მისამართს","განსაზღვრავს ჩასატვირთი ვებ გვერდების რაოდენობას","განსაზღვრავს ჩასატვირთი ვებ გვერდის ზომას"], ans:0 },
+  { id:83, q:"<a> თეგის რომელი ატრიბუტით მოხდება ვებ გვერდის ახალ ფანჯარაში ასახვა?", opts:['target="_blank"','target="_new"','target="_self"','target="_window"'], ans:0 },
+  { id:84, q:"დოკუმენტის ფარგლებში ღუზაზე გადასასვლელად <a> თეგის href ატრიბუტში ღუზის სახელი წინ უნდა მიეთითოს:", opts:["$ სიმბოლო","& სიმბოლო","* სიმბოლო","# სიმბოლო"], ans:3 },
+  { id:85, q:"ქვემოთ ჩამოთვლილთაგან რომელი თეგით იქმნება ნახატზე სანავიგაციო რუკა?", opts:["<div>","<link>","<map>","<a>"], ans:2 },
+  { id:86, q:"ქვემოთ ჩამოთვლილთაგან რომელი გეომეტრიული ფიგურის განთავსება არ შეიძლება ნახატზე სანავიგაციო რუკისათვის?", opts:["წრეწირის","სექტორის","მართკუთხედის","მრავალკუთხედის"], ans:1 },
+  { id:87, q:"ქვემოთ ჩამოთვლილთაგან რომელი თეგით იქმნება ნახატზე გეომეტრიული ფიგურები სანავიგაციო რუკისათვის?", opts:["<area>","<shape>","<square>","<link>"], ans:0 },
+  { id:88, q:"ქვემოთ ჩამოთვლილთაგან რომელი გეომეტრიული ფიგურის განთავსება შეიძლება ნახატზე სანავიგაციო რუკისათვის?", opts:["სეგმენტის","მართკუთხედის","ელიფსის","სექტორის"], ans:1 },
+  { id:89, q:"ჩამოთვლილთაგან, რომელი ატრიბუტით განისაზღვრება სანავიგაციო რუკის სახელი?", opts:["id","map","name","shape"], ans:2 },
+
+  // Group 7
+  { id:90, q:"ქვემოთ ჩამოთვლილთაგან რომელი თეგით იქმნება მორბენალი სტრიქონი?", opts:["<div>","<map>","<marquee>","<img>"], ans:2 },
+  { id:91, q:"ჩამოთვლილთაგან, რომელი ატრიბუტი განსაზღვრავს მორბენალი სტრიქონის მოძრაობის სიჩქარეს?", opts:["loop","behavior","direction","scrollamount","speed"], ans:3 },
+  { id:92, q:"ჩამოთვლილთაგან, რომელი ატრიბუტი განსაზღვრავს მორბენალი სტრიქონის მოძრაობის მიმართულებას?", opts:["loop","behavior","direction","scrollamount","speed"], ans:2 },
+  { id:93, q:"ჩამოთვლილთაგან, რომელი ატრიბუტი განსაზღვრავს მორბენალი სტრიქონის მოძრაობის სტილს?", opts:["loop","behavior","direction","scrollamount","speed"], ans:1 },
+  { id:94, q:"ჩამოთვლილთაგან, რომელი ატრიბუტი განსაზღვრავს მორბენელი სტრიქონის ეკრანზე გამოსვლის რაოდენობას?", opts:["loop","behavior","direction","scrollamount","speed"], ans:0 },
+  { id:95, q:"რომელი თეგით ხდება ცხრილის უჯრედის განსაზღვრა?", opts:["<tc></tc>","<td></td>","<tp></tp>","<tb></tb>","<tr></tr>"], ans:1 },
+  { id:96, q:"რომელი თეგით ხდება ცხრილის სტრიქონის განსაზღვრა?", opts:["<tc></tc>","<td></td>","<tp></tp>","<tb></tb>","<tr></tr>"], ans:4 },
+  { id:97, q:"რომელი ატრიბუტი არ ეკუთვნის <table></table> თეგს?", opts:["cellspacing","preset","bordercolor","cellpadding"], ans:1 },
+  { id:98, q:"რომელი ატრიბუტი განსაზღვრავს ცხრილის სტრიქონის სიმაღლეს?", opts:["width","valign","top","bottom","height"], ans:4 },
+  { id:99, q:"რომელი ატრიბუტი განსაზღვრავს ცხრილის სვეტის სიგანეს?", opts:["width","valign","top","bottom","height"], ans:0 },
+  { id:100, q:"<table> თეგის რომელი ატრიბუტი განსაზღვრავს ცხრილის ზემოთ და ქვემოთ ცარიელ ადგილს პიქსელებში?", opts:["width","vspace","hspace","bottom","height"], ans:1 },
+  { id:101, q:"<table> თეგის რომელი ატრიბუტი განსაზღვრავს ცხრილის მარჯვნივ და მარცხნივ ცარიელ ადგილს პიქსელებში?", opts:["width","vspace","hspace","bottom","height"], ans:2 },
+  { id:102, q:"რომელი თეგით ხდება ცხრილის სათაურის განსაზღვრა?", opts:["<tc></tc>","<td></td>","<th></th>","<tb></tb>","<tr></tr>"], ans:2 },
+  { id:103, q:"რას განსაზღვრავს <td> თეგის colspan ატრიბუტი?", opts:["ცხრილის რამდენი უჯრედი უნდა გაერთიანდეს ჰორიზონტალურად","ცხრილის რამდენი უჯრედი უნდა გაერთიანდეს ვერტიკალურად","უჯრის სიმაღლეს პიქსელებში","უჯრის სიგანეს პიქსელებში"], ans:0 },
+  { id:104, q:"რას განსაზღვრავს <td> თეგის rowspan ატრიბუტი?", opts:["ცხრილის რამდენი უჯრედი უნდა გაერთიანდეს ჰორიზონტალურად","ცხრილის რამდენი უჯრედი უნდა გაერთიანდეს ვერტიკალურად","უჯრის სიმაღლეს პიქსელებში","უჯრის სიგანეს პიქსელებში"], ans:1 },
+];
+
+const groups = [
+  { label: "ჯგუფი 1: HTML საფუძვლები", range: [1, 22] },
+  { label: "ჯგუფი 2: ფერები და Body თეგი", range: [23, 40] },
+  { label: "ჯგუფი 3: ტექსტი და ფორმატირება", range: [41, 61] },
+  { label: "ჯგუფი 4: HR, სიები", range: [62, 69] },
+  { label: "ჯგუფი 5: გამოსახულებები (IMG)", range: [70, 80] },
+  { label: "ჯგუფი 6: ბმულები და რუკები", range: [81, 89] },
+  { label: "ჯგუფი 7: Marquee, ცხრილები", range: [90, 104] },
+];
+
+const letters = ['ა','ბ','გ','დ','ე','ვ','ზ'];
+const answered = {};
+let score = 0;
+let submitted = false;
+
+function getGroupForQ(id) {
+  return groups.find(g => id >= g.range[0] && id <= g.range[1]);
+}
+
+function buildUI() {
+  const main = document.getElementById('mainArea');
+  let currentGroup = null;
+  let html = '';
+
+  questions.forEach((q, idx) => {
+    const grp = getGroupForQ(q.id);
+    if (!currentGroup || currentGroup.label !== grp.label) {
+      currentGroup = grp;
+      html += `<div class="section-header"><span class="section-tag">${grp.label}</span><div class="section-line"></div></div>`;
+    }
+    html += `<div class="q-card" id="qcard-${q.id}">
+      <div class="q-meta">
+        <span class="q-num">#${q.id}</span>
+        <span class="q-status" id="status-${q.id}"></span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="options" id="opts-${q.id}">
+        ${q.opts.map((o, i) => `<button class="option-btn" id="opt-${q.id}-${i}" onclick="pick(${q.id},${i})">
+          <span class="opt-letter">${letters[i]}</span><span>${o}</span>
+        </button>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="submit-wrap">
+    <button class="submit-btn" id="submitBtn" onclick="submitTest()">ტესტის დასრულება და შეფასება</button>
+  </div>`;
+
+  html += `<div class="result-bar" id="resultBar">
+    <div class="result-big" id="resultBig">-</div>
+    <div class="result-sub" id="resultSub">სწორი პასუხი 104-დან</div>
+    <div class="result-grade" id="resultGrade"></div>
+    <button class="retry-btn" onclick="retryTest()">ხელახლა გავლა</button>
+  </div>`;
+
+  main.innerHTML = html;
+}
+
+function pick(qid, optIdx) {
+  if (submitted) return;
+  const q = questions.find(x => x.id === qid);
+  const wasAnswered = answered[qid] !== undefined;
+
+  // Remove old selection
+  q.opts.forEach((_, i) => {
+    const b = document.getElementById(`opt-${qid}-${i}`);
+    b.classList.remove('selected');
+  });
+
+  if (wasAnswered) {
+    score -= (answered[qid] === q.ans ? 1 : 0);
+  }
+
+  answered[qid] = optIdx;
+  document.getElementById(`opt-${qid}-${optIdx}`).classList.add('selected');
+  score += (optIdx === q.ans ? 1 : 0);
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const count = Object.keys(answered).length;
+  const pct = (count / questions.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${count} / ${questions.length}`;
+  document.getElementById('scorePill').textContent = `ქულა: ${score}`;
+  document.getElementById('fab').textContent = `${count} / ${questions.length} ✓`;
+}
+
+function submitTest() {
+  if (submitted) return;
+  submitted = true;
+  document.getElementById('submitBtn').disabled = true;
+
+  // Reveal answers
+  questions.forEach(q => {
+    const card = document.getElementById(`qcard-${q.id}`);
+    const userAns = answered[q.id];
+    const status = document.getElementById(`status-${q.id}`);
+    status.style.display = 'inline';
+
+    q.opts.forEach((_, i) => {
+      const b = document.getElementById(`opt-${q.id}-${i}`);
+      b.disabled = true;
+      b.classList.remove('selected');
+    });
+
+    if (userAns === undefined) {
+      // Not answered — just show correct
+      document.getElementById(`opt-${q.id}-${q.ans}`).classList.add('reveal-correct');
+      card.style.borderColor = '#444';
+      status.textContent = '—';
+    } else if (userAns === q.ans) {
+      document.getElementById(`opt-${q.id}-${userAns}`).classList.add('correct');
+      card.classList.add('answered-correct');
+      status.textContent = '✓';
+    } else {
+      document.getElementById(`opt-${q.id}-${userAns}`).classList.add('wrong');
+      document.getElementById(`opt-${q.id}-${q.ans}`).classList.add('reveal-correct');
+      card.classList.add('answered-wrong');
+      status.textContent = '✗';
+    }
+  });
+
+  // Recount true score
+  let trueScore = 0;
+  questions.forEach(q => { if (answered[q.id] === q.ans) trueScore++; });
+  score = trueScore;
+  updateProgress();
+
+  // Show result
+  const pct = Math.round((trueScore / questions.length) * 100);
+  const rb = document.getElementById('resultBar');
+  rb.classList.add('show');
+  document.getElementById('resultBig').textContent = `${trueScore} / ${questions.length}`;
+  document.getElementById('resultSub').textContent = `სწორი პასუხი — ${pct}%`;
+  let grade = '';
+  if (pct >= 91) grade = '🏆 შეფასება: A — ბრწყინვალე!';
+  else if (pct >= 81) grade = '🥇 შეფასება: B — ძალიან კარგი';
+  else if (pct >= 71) grade = '🥈 შეფასება: C — კარგი';
+  else if (pct >= 61) grade = '🥉 შეფასება: D — დამაკმაყოფილებელი';
+  else grade = '📚 შეფასება: F — საჭიროა გამეორება';
+  document.getElementById('resultGrade').textContent = grade;
+  rb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function retryTest() {
+  Object.keys(answered).forEach(k => delete answered[k]);
+  score = 0;
+  submitted = false;
+  buildUI();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildUI();
+updateProgress();
+</script>
+</body>
+</html>
